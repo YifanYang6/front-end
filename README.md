@@ -7,6 +7,14 @@
 ---
 Front-end application written in [Node.js](https://nodejs.org/en/) that puts together all of the microservices under [microservices-demo](https://github.com/microservices-demo/microservices-demo).
 
+## OpenTelemetry Support
+
+This application now supports OpenTelemetry auto-instrumentation for distributed tracing and observability. See [OPENTELEMETRY.md](OPENTELEMETRY.md) for detailed information on:
+- Why the changes were needed
+- How to configure OpenTelemetry in Kubernetes
+- Troubleshooting guide
+- Code migration examples
+
 # Build
 
 ## Dependencies
@@ -19,6 +27,10 @@ Front-end application written in [Node.js](https://nodejs.org/en/) that puts tog
     </tr>
   </thead>
   <tbody>
+    <tr>
+      <td><a href="https://nodejs.org">Node.js</a></td>
+      <td>>= 18.0</td>
+    </tr>
     <tr>
       <td><a href="https://docker.com">Docker</a></td>
       <td>>= 1.12</td>

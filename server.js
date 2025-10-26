@@ -1,5 +1,4 @@
-var request      = require("request")
-  , express      = require("express")
+var express      = require("express")
   , morgan       = require("morgan")
   , path         = require("path")
   , bodyParser   = require("body-parser")
