@@ -3,7 +3,7 @@
 
   var async     = require("async")
     , express   = require("express")
-    , request   = require("request")
+    , axios     = require("axios")
     , helpers   = require("../../helpers")
     , endpoints = require("../endpoints")
     , app       = express()
@@ -13,29 +13,27 @@
     console.log("Request received: " + req.url + ", " + req.query.custId);
     var custId = helpers.getCustomerId(req, app.get("env"));
     console.log("Customer ID: " + custId);
-    request(endpoints.cartsUrl + "/" + custId + "/items", function (error, response, body) {
-      if (error) {
-        return next(error);
-      }
-      helpers.respondStatusBody(res, response.statusCode, body)
-    });
+    axios.get(endpoints.cartsUrl + "/" + custId + "/items")
+      .then(function(response) {
+        helpers.respondStatusBody(res, response.status, typeof response.data === 'string' ? response.data : JSON.stringify(response.data));
+      })
+      .catch(function(error) {
+        next(error);
+      });
   });
 
   // Delete cart
   app.delete("/cart", function (req, res, next) {
     var custId = helpers.getCustomerId(req, app.get("env"));
     console.log('Attempting to delete cart for user: ' + custId);
-    var options = {
-      uri: endpoints.cartsUrl + "/" + custId,
-      method: 'DELETE'
-    };
-    request(options, function (error, response, body) {
-      if (error) {
-        return next(error);
-      }
-      console.log('User cart deleted with status: ' + response.statusCode);
-      helpers.respondStatus(res, response.statusCode);
-    });
+    axios.delete(endpoints.cartsUrl + "/" + custId)
+      .then(function(response) {
+        console.log('User cart deleted with status: ' + response.status);
+        helpers.respondStatus(res, response.status);
+      })
+      .catch(function(error) {
+        next(error);
+      });
   });
 
   // Delete item from cart
@@ -48,17 +46,14 @@
 
     var custId = helpers.getCustomerId(req, app.get("env"));
 
-    var options = {
-      uri: endpoints.cartsUrl + "/" + custId + "/items/" + req.params.id.toString(),
-      method: 'DELETE'
-    };
-    request(options, function (error, response, body) {
-      if (error) {
-        return next(error);
-      }
-      console.log('Item deleted with status: ' + response.statusCode);
-      helpers.respondStatus(res, response.statusCode);
-    });
+    axios.delete(endpoints.cartsUrl + "/" + custId + "/items/" + req.params.id.toString())
+      .then(function(response) {
+        console.log('Item deleted with status: ' + response.status);
+        helpers.respondStatus(res, response.status);
+      })
+      .catch(function(error) {
+        next(error);
+      });
   });
 
   // Add new item to cart
@@ -74,26 +69,25 @@
 
     async.waterfall([
         function (callback) {
-          request(endpoints.catalogueUrl + "/catalogue/" + req.body.id.toString(), function (error, response, body) {
-            console.log(body);
-            callback(error, JSON.parse(body));
-          });
+          axios.get(endpoints.catalogueUrl + "/catalogue/" + req.body.id.toString())
+            .then(function(response) {
+              console.log(response.data);
+              callback(null, response.data);
+            })
+            .catch(function(error) {
+              callback(error);
+            });
         },
         function (item, callback) {
-          var options = {
-            uri: endpoints.cartsUrl + "/" + custId + "/items",
-            method: 'POST',
-            json: true,
-            body: {itemId: item.id, unitPrice: item.price}
-          };
-          console.log("POST to carts: " + options.uri + " body: " + JSON.stringify(options.body));
-          request(options, function (error, response, body) {
-            if (error) {
-              callback(error)
-                return;
-            }
-            callback(null, response.statusCode);
-          });
+          var body = {itemId: item.id, unitPrice: item.price};
+          console.log("POST to carts: " + endpoints.cartsUrl + "/" + custId + "/items" + " body: " + JSON.stringify(body));
+          axios.post(endpoints.cartsUrl + "/" + custId + "/items", body)
+            .then(function(response) {
+              callback(null, response.status);
+            })
+            .catch(function(error) {
+              callback(error);
+            });
         }
     ], function (err, statusCode) {
       if (err) {
@@ -122,26 +116,25 @@
 
     async.waterfall([
         function (callback) {
-          request(endpoints.catalogueUrl + "/catalogue/" + req.body.id.toString(), function (error, response, body) {
-            console.log(body);
-            callback(error, JSON.parse(body));
-          });
+          axios.get(endpoints.catalogueUrl + "/catalogue/" + req.body.id.toString())
+            .then(function(response) {
+              console.log(response.data);
+              callback(null, response.data);
+            })
+            .catch(function(error) {
+              callback(error);
+            });
         },
         function (item, callback) {
-          var options = {
-            uri: endpoints.cartsUrl + "/" + custId + "/items",
-            method: 'PATCH',
-            json: true,
-            body: {itemId: item.id, quantity: parseInt(req.body.quantity), unitPrice: item.price}
-          };
-          console.log("PATCH to carts: " + options.uri + " body: " + JSON.stringify(options.body));
-          request(options, function (error, response, body) {
-            if (error) {
-              callback(error)
-                return;
-            }
-            callback(null, response.statusCode);
-          });
+          var body = {itemId: item.id, quantity: parseInt(req.body.quantity), unitPrice: item.price};
+          console.log("PATCH to carts: " + endpoints.cartsUrl + "/" + custId + "/items" + " body: " + JSON.stringify(body));
+          axios.patch(endpoints.cartsUrl + "/" + custId + "/items", body)
+            .then(function(response) {
+              callback(null, response.status);
+            })
+            .catch(function(error) {
+              callback(error);
+            });
         }
     ], function (err, statusCode) {
       if (err) {

@@ -2,7 +2,16 @@
   'use strict';
 
   var session      = require("express-session"),
-      RedisStore   = require('connect-redis')(session)
+      RedisStore   = require('connect-redis').default,
+      redis        = require('redis')
+
+  var redisClient = redis.createClient({
+    socket: {
+      host: "session-db"
+    },
+    legacyMode: true
+  });
+  redisClient.connect().catch(console.error);
 
   module.exports = {
     session: {
@@ -13,7 +22,7 @@
     },
 
     session_redis: {
-      store: new RedisStore({host: "session-db"}),
+      store: new RedisStore({client: redisClient}),
       name: 'md.sid',
       secret: 'sooper secret',
       resave: false,

@@ -1,7 +1,7 @@
 (function (){
   'use strict';
 
-  var request = require("request");
+  var axios = require("axios");
   var helpers = {};
 
   /* Public: errorHandler is a middleware that handles your errors
@@ -91,10 +91,13 @@
    * });
    */
   helpers.simpleHttpRequest = function(url, res, next) {
-    request.get(url, function(error, response, body) {
-      if (error) return next(error);
-      helpers.respondSuccessBody(res, body);
-    }.bind({res: res}));
+    axios.get(url)
+      .then(function(response) {
+        helpers.respondSuccessBody(res, typeof response.data === 'string' ? response.data : JSON.stringify(response.data));
+      })
+      .catch(function(error) {
+        next(error);
+      });
   }
 
   /* TODO: Add documentation */

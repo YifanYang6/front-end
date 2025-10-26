@@ -2,16 +2,20 @@
   'use strict';
 
   var express   = require("express")
-    , request   = require("request")
+    , axios     = require("axios")
     , endpoints = require("../endpoints")
     , helpers   = require("../../helpers")
     , app       = express()
 
   app.get("/catalogue/images*", function (req, res, next) {
     var url = endpoints.catalogueUrl + req.url.toString();
-    request.get(url)
-        .on('error', function(e) { next(e); })
-        .pipe(res);
+    axios.get(url, {responseType: 'stream'})
+      .then(function(response) {
+        response.data.pipe(res);
+      })
+      .catch(function(error) {
+        next(error);
+      });
   });
 
   app.get("/catalogue*", function (req, res, next) {

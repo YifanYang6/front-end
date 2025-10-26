@@ -2,7 +2,7 @@
   'use strict';
 
   var express    = require("express")
-    , request    = require("request")
+    , axios      = require("axios")
     , bodyParser = require("body-parser")
     , http       = require("http")
     , chai       = require("chai")
@@ -163,20 +163,16 @@
 
       it("performs a GET request to the given URL", function() {
         var url = "http://google.com";
-        sinon.stub(request, "get", function(requestedUrl, cb) {
-          expect(requestedUrl).to.equal(url);
-        });
+        var stub = sinon.stub(axios, "get");
+        stub.returns(Promise.resolve({data: "success"}));
         helpers.simpleHttpRequest(url);
-        request.get.restore();
+        axios.get.restore();
       });
 
       describe("given the external service responds with success", function() {
         beforeEach(function(done) {
-          sinon.stub(request, "get", function(url, cb) {
-            var _res    = {}
-              , mockRes = sinon.mock(_res);
-            cb(null, mockRes, "success");
-          });
+          var stub = sinon.stub(axios, "get");
+          stub.returns(Promise.resolve({data: "success"}));
 
           app.use(function(_req, _res) {
             helpers.simpleHttpRequest("http://api.example.org/users", _res, done);
@@ -194,7 +190,7 @@
         });
 
         afterEach(function() {
-          request.get.restore();
+          axios.get.restore();
         });
 
         it("yields the external service response to the response body", function() {
@@ -210,15 +206,14 @@
         it("invokes the given callback with an error object", function(done) {
           var spy = sinon.spy();
 
-          sinon.stub(request, "get", function(url, cb) {
-            cb(new Error("Something went wrong"));
-          });
+          var stub = sinon.stub(axios, "get");
+          stub.returns(Promise.reject(new Error("Something went wrong")));
 
           app.use(function(req, res) {
             helpers.simpleHttpRequest("http://example.org/fail", res, function(err) {
               expect(err).not.to.be.null;
               expect(err.message).to.equal("Something went wrong");
-              request.get.restore();
+              axios.get.restore();
               done();
             });
           });
