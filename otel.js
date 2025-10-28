@@ -74,14 +74,19 @@
 
   // Graceful shutdown handler - registered once at module load
   process.on('SIGTERM', () => {
-    if (sdk && !isShuttingDown) {
+    if (!isShuttingDown) {
       isShuttingDown = true;
-      sdk.shutdown()
-        .then(() => console.log('OpenTelemetry SDK shut down successfully'))
-        .catch((error) => console.error('Error shutting down OpenTelemetry SDK', error))
-        .finally(() => process.exit(0));
-    } else {
-      process.exit(0);
+      if (sdk) {
+        sdk.shutdown()
+          .then(() => console.log('OpenTelemetry SDK shut down successfully'))
+          .catch((error) => {
+            console.error('Error shutting down OpenTelemetry SDK', error);
+            process.exit(1);
+          })
+          .finally(() => process.exit(0));
+      } else {
+        process.exit(0);
+      }
     }
   });
 
