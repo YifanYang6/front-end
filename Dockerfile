@@ -1,6 +1,8 @@
-FROM node:10-alpine
-ENV NODE_ENV "production"
-ENV PORT 8079
+FROM node:16-alpine
+ENV NODE_ENV="production"
+ENV PORT="8079"
+ENV HOME="/tmp"
+ENV NPM_CONFIG_CACHE="/tmp/.npm"
 EXPOSE 8079
 RUN addgroup mygroup && adduser -D -G mygroup myuser && mkdir -p /usr/src/app && chown -R myuser /usr/src/app
 
