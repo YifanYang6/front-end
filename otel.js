@@ -14,8 +14,16 @@
   const serviceName = process.env.OTEL_SERVICE_NAME || 'front-end';
   
   let sdk = null;
+  let isInitialized = false;
+  let isShuttingDown = false;
 
   function initializeOtel() {
+    // Guard against multiple initializations
+    if (isInitialized) {
+      console.log('OpenTelemetry already initialized, skipping');
+      return sdk;
+    }
+
     // Only initialize if OTEL endpoint is configured
     if (!otelEndpoint) {
       console.log('OTEL endpoint not configured, skipping OpenTelemetry initialization');
@@ -54,15 +62,8 @@
 
       // Start the SDK
       sdk.start();
+      isInitialized = true;
       console.log('OpenTelemetry initialized successfully');
-
-      // Graceful shutdown
-      process.on('SIGTERM', () => {
-        sdk.shutdown()
-          .then(() => console.log('OpenTelemetry SDK shut down successfully'))
-          .catch((error) => console.error('Error shutting down OpenTelemetry SDK', error))
-          .finally(() => process.exit(0));
-      });
 
       return sdk;
     } catch (error) {
@@ -70,6 +71,19 @@
       return null;
     }
   }
+
+  // Graceful shutdown handler - registered once at module load
+  process.on('SIGTERM', () => {
+    if (sdk && !isShuttingDown) {
+      isShuttingDown = true;
+      sdk.shutdown()
+        .then(() => console.log('OpenTelemetry SDK shut down successfully'))
+        .catch((error) => console.error('Error shutting down OpenTelemetry SDK', error))
+        .finally(() => process.exit(0));
+    } else {
+      process.exit(0);
+    }
+  });
 
   module.exports = {
     initializeOtel,

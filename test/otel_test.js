@@ -33,6 +33,18 @@ describe("otel", function() {
       }
     });
 
+    it("should not initialize twice when called multiple times", function() {
+      process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318";
+      otel = require("../otel");
+      var sdk1 = otel.initializeOtel();
+      var sdk2 = otel.initializeOtel();
+      expect(sdk1).to.equal(sdk2);
+      // Cleanup: shutdown the SDK
+      if (sdk1) {
+        sdk1.shutdown();
+      }
+    });
+
     it("should use default service name when OTEL_SERVICE_NAME is not set", function() {
       process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318";
       delete process.env.OTEL_SERVICE_NAME;
