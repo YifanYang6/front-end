@@ -55,6 +55,12 @@
             '@opentelemetry/instrumentation-fs': {
               enabled: false, // Disable filesystem instrumentation to reduce noise
             },
+            '@opentelemetry/instrumentation-dns': {
+              enabled: false, // Disable DNS instrumentation to prevent unnecessary root spans
+            },
+            '@opentelemetry/instrumentation-net': {
+              enabled: false, // Disable NET instrumentation to prevent unnecessary tcp.connect root spans
+            },
           }),
         ],
         logRecordProcessor: new BatchLogRecordProcessor(logExporter),
