@@ -65,8 +65,11 @@
             '@opentelemetry/instrumentation-http': {
               ignoreIncomingRequestHook: (req) => {
                 // Ignore health check and metrics endpoints
+                if (!req.url) {
+                  return false;
+                }
                 const ignorePaths = ['/metrics', '/health', '/favicon.ico'];
-                return ignorePaths.some(path => req.url && req.url.startsWith(path));
+                return ignorePaths.some(path => req.url.startsWith(path));
               },
             },
             // Configure Express instrumentation
