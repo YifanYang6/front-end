@@ -6,7 +6,7 @@
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
   const { OTLPLogExporter } = require('@opentelemetry/exporter-logs-otlp-http');
   const { Resource } = require('@opentelemetry/resources');
-  const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
+  const { SEMRESATTRS_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
   const { BatchLogRecordProcessor } = require('@opentelemetry/sdk-logs');
 
   // Configuration from environment variables
@@ -43,23 +43,35 @@
         url: `${otelEndpoint}/v1/logs`,
       });
 
-      // Create SDK instance
+      // Create SDK instance with comprehensive instrumentation configuration
       sdk = new NodeSDK({
         resource: new Resource({
-          [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+          [SEMRESATTRS_SERVICE_NAME]: serviceName,
         }),
         traceExporter: traceExporter,
         instrumentations: [
           getNodeAutoInstrumentations({
-            // Configure auto-instrumentations
+            // Disable noisy instrumentations that create unnecessary spans
             '@opentelemetry/instrumentation-fs': {
-              enabled: false, // Disable filesystem instrumentation to reduce noise
+              enabled: false,
             },
             '@opentelemetry/instrumentation-dns': {
-              enabled: false, // Disable DNS instrumentation to prevent unnecessary root spans
+              enabled: false,
             },
             '@opentelemetry/instrumentation-net': {
-              enabled: false, // Disable NET instrumentation to prevent unnecessary tcp.connect root spans
+              enabled: false,
+            },
+            // Configure HTTP instrumentation to reduce middleware noise
+            '@opentelemetry/instrumentation-http': {
+              ignoreIncomingRequestHook: (req) => {
+                // Ignore health check and metrics endpoints
+                const ignorePaths = ['/metrics', '/health', '/favicon.ico'];
+                return ignorePaths.some(path => req.url && req.url.startsWith(path));
+              },
+            },
+            // Configure Express instrumentation
+            '@opentelemetry/instrumentation-express': {
+              ignoreLayersType: ['middleware'],
             },
           }),
         ],
