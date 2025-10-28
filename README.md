@@ -83,6 +83,20 @@ make e2e
 
 `make server`
 
+# Configuration
+
+## OpenTelemetry (OTEL)
+
+The application supports OpenTelemetry for distributed tracing and log export. Configure it using environment variables:
+
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: The OTLP endpoint URL (e.g., `http://localhost:4318`). If not set, OTEL is disabled.
+- `OTEL_SERVICE_NAME`: The service name for telemetry (default: `front-end`)
+
+Example:
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 OTEL_SERVICE_NAME=front-end npm start
+```
+
 # Use
 
 ## Node

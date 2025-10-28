@@ -1,3 +1,7 @@
+// Initialize OpenTelemetry first (before any other requires)
+var otel         = require("./otel");
+otel.initializeOtel();
+
 var request      = require("request")
   , express      = require("express")
   , morgan       = require("morgan")
