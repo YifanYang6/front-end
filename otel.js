@@ -5,9 +5,8 @@
   const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
   const { OTLPLogExporter } = require('@opentelemetry/exporter-logs-otlp-http');
-  const { Resource } = require('@opentelemetry/resources');
-  const { SEMRESATTRS_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
   const { BatchLogRecordProcessor } = require('@opentelemetry/sdk-logs');
+  const { envDetector, hostDetector, osDetector, processDetector } = require('@opentelemetry/resources');
 
   // Configuration from environment variables
   const otelEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '';
@@ -45,9 +44,7 @@
 
       // Create SDK instance with comprehensive instrumentation configuration
       sdk = new NodeSDK({
-        resource: new Resource({
-          [SEMRESATTRS_SERVICE_NAME]: serviceName,
-        }),
+        serviceName: serviceName,
         traceExporter: traceExporter,
         instrumentations: [
           getNodeAutoInstrumentations({
@@ -72,13 +69,19 @@
                 return ignorePaths.some(path => req.url.startsWith(path));
               },
             },
-            // Configure Express instrumentation
+            // Configure Express instrumentation to only show request handlers, not middleware
             '@opentelemetry/instrumentation-express': {
-              ignoreLayersType: ['middleware'],
+              ignoreLayersType: ['middleware', 'router'],
             },
           }),
         ],
         logRecordProcessor: new BatchLogRecordProcessor(logExporter),
+        resourceDetectors: [
+          envDetector,
+          hostDetector,
+          osDetector,
+          processDetector,
+        ],
       });
 
       // Start the SDK
