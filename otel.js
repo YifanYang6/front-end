@@ -10,6 +10,7 @@
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
   const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
   const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
+  const { envDetector, hostDetector, osDetector, processDetector } = require('@opentelemetry/resources');
 
   // Configuration from environment variables
   const otelEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '';
@@ -19,7 +20,7 @@
   let isInitialized = false;
   let isShuttingDown = false;
 
-  function initializeOtel() {
+  async function initializeOtel() {
     // Guard against multiple initializations
     if (isInitialized) {
       console.log('OpenTelemetry already initialized, skipping');
@@ -40,11 +41,18 @@
         url: `${otelEndpoint}/v1/traces`,
       });
 
-      // Create tracer provider with resource
+      // Create base resource with service name
+      const baseResource = new Resource({
+        [SEMRESATTRS_SERVICE_NAME]: serviceName,
+      });
+
+      // Detect additional resource attributes
+      const detectedResource = await Resource.default()
+        .merge(baseResource);
+
+      // Create tracer provider with merged resource
       provider = new NodeTracerProvider({
-        resource: new Resource({
-          [SEMRESATTRS_SERVICE_NAME]: serviceName,
-        }),
+        resource: detectedResource,
       });
 
       // Add span processor with batch exporter
