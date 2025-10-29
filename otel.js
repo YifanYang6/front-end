@@ -42,34 +42,28 @@
         url: `${otelEndpoint}/v1/logs`,
       });
 
-      // Create SDK instance with comprehensive instrumentation configuration
+      // Create SDK instance
+      // Use OTEL_NODE_ENABLED_INSTRUMENTATIONS or OTEL_NODE_DISABLED_INSTRUMENTATIONS
+      // environment variables to control which instrumentations are loaded
+      // Example: OTEL_NODE_ENABLED_INSTRUMENTATIONS="http,express"
+      // Example: OTEL_NODE_DISABLED_INSTRUMENTATIONS="fs,dns,net"
       sdk = new NodeSDK({
         serviceName: serviceName,
         traceExporter: traceExporter,
         instrumentations: [
           getNodeAutoInstrumentations({
-            // Disable noisy instrumentations that create unnecessary spans
-            '@opentelemetry/instrumentation-fs': {
-              enabled: false,
-            },
-            '@opentelemetry/instrumentation-dns': {
-              enabled: false,
-            },
-            '@opentelemetry/instrumentation-net': {
-              enabled: false,
-            },
-            // Configure HTTP instrumentation to reduce middleware noise
+            // Configure HTTP instrumentation to filter noisy endpoints
             '@opentelemetry/instrumentation-http': {
               ignoreIncomingRequestHook: (req) => {
-                // Ignore health check and metrics endpoints
                 if (!req.url) {
                   return false;
                 }
+                // Ignore health check, metrics, and static asset endpoints
                 const ignorePaths = ['/metrics', '/health', '/favicon.ico'];
                 return ignorePaths.some(path => req.url.startsWith(path));
               },
             },
-            // Configure Express instrumentation to only show request handlers, not middleware
+            // Configure Express instrumentation to reduce middleware noise
             '@opentelemetry/instrumentation-express': {
               ignoreLayersType: ['middleware', 'router'],
             },

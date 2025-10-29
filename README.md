@@ -89,13 +89,51 @@ make e2e
 
 The application supports OpenTelemetry for distributed tracing and log export. Configure it using environment variables:
 
+### Basic Configuration
+
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The OTLP endpoint URL (e.g., `http://localhost:4318`). If not set, OTEL is disabled.
 - `OTEL_SERVICE_NAME`: The service name for telemetry (default: `front-end`)
 
-Example:
+### Instrumentation Control
+
+Control which instrumentations are enabled using these environment variables:
+
+- `OTEL_NODE_ENABLED_INSTRUMENTATIONS`: Comma-separated list of instrumentations to enable (e.g., `"http,express"`)
+- `OTEL_NODE_DISABLED_INSTRUMENTATIONS`: Comma-separated list of instrumentations to disable (e.g., `"fs,dns,net"`)
+
+**Note:** If both are set, `OTEL_NODE_ENABLED_INSTRUMENTATIONS` is applied first, then `OTEL_NODE_DISABLED_INSTRUMENTATIONS` is applied to that list.
+
+### Logging
+
+- `OTEL_LOG_LEVEL`: Set log level for troubleshooting (`none`, `error`, `warn`, `info`, `debug`, `verbose`, `all`). Default: `info`
+
+### Recommended Configuration
+
+For production, we recommend disabling noisy low-level instrumentations:
+
 ```bash
-OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 OTEL_SERVICE_NAME=front-end npm start
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+export OTEL_SERVICE_NAME=front-end
+export OTEL_NODE_DISABLED_INSTRUMENTATIONS="fs,dns,net"
+export OTEL_LOG_LEVEL=info
+npm start
 ```
+
+Alternatively, to only enable specific instrumentations:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+export OTEL_SERVICE_NAME=front-end
+export OTEL_NODE_ENABLED_INSTRUMENTATIONS="http,express"
+export OTEL_LOG_LEVEL=info
+npm start
+```
+
+This configuration:
+- Enables only HTTP and Express instrumentations for cleaner traces
+- Filters out health check, metrics, and favicon requests
+- Ignores Express middleware and router layers (only request handlers are traced)
+- Provides proper service identification with resource detectors
 
 # Use
 
