@@ -20,6 +20,10 @@ Front-end application written in [Node.js](https://nodejs.org/en/) that puts tog
   </thead>
   <tbody>
     <tr>
+      <td><a href="https://nodejs.org/">Node.js</a></td>
+      <td>>= 18.0.0</td>
+    </tr>
+    <tr>
       <td><a href="https://docker.com">Docker</a></td>
       <td>>= 1.12</td>
     </tr>
@@ -87,15 +91,41 @@ make e2e
 
 ## OpenTelemetry (OTEL)
 
-The application supports OpenTelemetry for distributed tracing and log export. Configure it using environment variables:
+The application supports OpenTelemetry for distributed tracing using manual HTTP and Express instrumentation. Configure it using environment variables:
+
+### Basic Configuration
 
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The OTLP endpoint URL (e.g., `http://localhost:4318`). If not set, OTEL is disabled.
 - `OTEL_SERVICE_NAME`: The service name for telemetry (default: `front-end`)
 
-Example:
+### Implementation
+
+The application uses manual instrumentation with:
+- **HTTP Instrumentation**: Traces all HTTP requests/responses with filtering for infrastructure endpoints
+- **Express Instrumentation**: Traces Express routes with middleware/router layer filtering
+
+**Filtered endpoints:**
+- `/metrics` - Prometheus metrics endpoint
+- `/health` - Health check endpoint  
+- `/favicon.ico` - Browser favicon requests
+
+**Span filtering:**
+- Express middleware and router layers are excluded
+- Only request handler spans are created for clean, focused traces
+
+### Production Configuration
+
 ```bash
-OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 OTEL_SERVICE_NAME=front-end npm start
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+export OTEL_SERVICE_NAME=front-end
+npm start
 ```
+
+This configuration:
+- Uses manual HTTP and Express instrumentation (no auto-instrumentation)
+- Filters out health check, metrics, and favicon requests
+- Ignores Express middleware and router layers (only request handlers are traced)
+- Provides clean traces focused on business logic endpoints
 
 # Use
 

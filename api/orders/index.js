@@ -28,7 +28,13 @@
               console.log("No orders found for user: " + custId);
               return callback(null, []);
             }
-            callback(null, JSON.parse(body)._embedded.customerOrders);
+            try {
+              var orders = JSON.parse(body)._embedded.customerOrders;
+              callback(null, orders);
+            } catch (parseError) {
+              console.error('Failed to parse orders response:', parseError.message);
+              callback(new Error('Invalid response from orders service'));
+            }
           });
         }
     ],
@@ -63,17 +69,22 @@
               return;
             }
             console.log("Received response: " + JSON.stringify(body));
-            var jsonBody = JSON.parse(body);
-            var customerlink = jsonBody._links.customer.href;
-            var addressLink = jsonBody._links.addresses.href;
-            var cardLink = jsonBody._links.cards.href;
-            var order = {
-              "customer": customerlink,
-              "address": null,
-              "card": null,
-              "items": endpoints.cartsUrl + "/" + custId + "/items"
-            };
-            callback(null, order, addressLink, cardLink);
+            try {
+              var jsonBody = JSON.parse(body);
+              var customerlink = jsonBody._links.customer.href;
+              var addressLink = jsonBody._links.addresses.href;
+              var cardLink = jsonBody._links.cards.href;
+              var order = {
+                "customer": customerlink,
+                "address": null,
+                "card": null,
+                "items": endpoints.cartsUrl + "/" + custId + "/items"
+              };
+              callback(null, order, addressLink, cardLink);
+            } catch (parseError) {
+              console.error('Failed to parse customer response:', parseError.message);
+              callback(new Error('Invalid response from customers service'));
+            }
           });
         },
         function (order, addressLink, cardLink, callback) {
@@ -86,11 +97,16 @@
                     return;
                   }
                   console.log("Received response: " + JSON.stringify(body));
-                  var jsonBody = JSON.parse(body);
-                  if (jsonBody.status_code !== 500 && jsonBody._embedded.address[0] != null) {
-                    order.address = jsonBody._embedded.address[0]._links.self.href;
+                  try {
+                    var jsonBody = JSON.parse(body);
+                    if (jsonBody.status_code !== 500 && jsonBody._embedded.address[0] != null) {
+                      order.address = jsonBody._embedded.address[0]._links.self.href;
+                    }
+                    callback();
+                  } catch (parseError) {
+                    console.error('Failed to parse address response:', parseError.message);
+                    callback(new Error('Invalid response from address service'));
                   }
-                  callback();
                 });
               },
               function (callback) {
@@ -101,11 +117,16 @@
                     return;
                   }
                   console.log("Received response: " + JSON.stringify(body));
-                  var jsonBody = JSON.parse(body);
-                  if (jsonBody.status_code !== 500 && jsonBody._embedded.card[0] != null) {
-                    order.card = jsonBody._embedded.card[0]._links.self.href;
+                  try {
+                    var jsonBody = JSON.parse(body);
+                    if (jsonBody.status_code !== 500 && jsonBody._embedded.card[0] != null) {
+                      order.card = jsonBody._embedded.card[0]._links.self.href;
+                    }
+                    callback();
+                  } catch (parseError) {
+                    console.error('Failed to parse card response:', parseError.message);
+                    callback(new Error('Invalid response from card service'));
                   }
-                  callback();
                 });
               }
           ], function (err, result) {

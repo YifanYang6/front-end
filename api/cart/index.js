@@ -76,7 +76,16 @@
         function (callback) {
           request(endpoints.catalogueUrl + "/catalogue/" + req.body.id.toString(), function (error, response, body) {
             console.log(body);
-            callback(error, JSON.parse(body));
+            if (error) {
+              return callback(error);
+            }
+            try {
+              var item = JSON.parse(body);
+              callback(null, item);
+            } catch (parseError) {
+              console.error('Failed to parse catalogue response:', parseError.message);
+              callback(new Error('Invalid response from catalogue service'));
+            }
           });
         },
         function (item, callback) {
@@ -89,8 +98,8 @@
           console.log("POST to carts: " + options.uri + " body: " + JSON.stringify(options.body));
           request(options, function (error, response, body) {
             if (error) {
-              callback(error)
-                return;
+              callback(error);
+              return;
             }
             callback(null, response.statusCode);
           });
@@ -124,7 +133,16 @@
         function (callback) {
           request(endpoints.catalogueUrl + "/catalogue/" + req.body.id.toString(), function (error, response, body) {
             console.log(body);
-            callback(error, JSON.parse(body));
+            if (error) {
+              return callback(error);
+            }
+            try {
+              var item = JSON.parse(body);
+              callback(null, item);
+            } catch (parseError) {
+              console.error('Failed to parse catalogue response:', parseError.message);
+              callback(new Error('Invalid response from catalogue service'));
+            }
           });
         },
         function (item, callback) {
@@ -137,8 +155,8 @@
           console.log("PATCH to carts: " + options.uri + " body: " + JSON.stringify(options.body));
           request(options, function (error, response, body) {
             if (error) {
-              callback(error)
-                return;
+              callback(error);
+              return;
             }
             callback(null, response.statusCode);
           });

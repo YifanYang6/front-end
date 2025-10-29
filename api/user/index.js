@@ -72,14 +72,19 @@
             if (error) {
                 return next(error);
             }
-            var data = JSON.parse(body);
-            if (data.status_code !== 500 && data._embedded.card.length !== 0 ) {
-                var resp = {
-                    "number": data._embedded.card[0].longNum.slice(-4)
-                };
-                return helpers.respondSuccessBody(res, JSON.stringify(resp));
+            try {
+                var data = JSON.parse(body);
+                if (data.status_code !== 500 && data._embedded.card.length !== 0 ) {
+                    var resp = {
+                        "number": data._embedded.card[0].longNum.slice(-4)
+                    };
+                    return helpers.respondSuccessBody(res, JSON.stringify(resp));
+                }
+                return helpers.respondSuccessBody(res, JSON.stringify({"status_code": 500}));
+            } catch (parseError) {
+                console.error('Failed to parse card response:', parseError.message);
+                return helpers.respondSuccessBody(res, JSON.stringify({"status_code": 500}));
             }
-            return helpers.respondSuccessBody(res, JSON.stringify({"status_code": 500}));
         }.bind({
             res: res
         }));
@@ -95,12 +100,17 @@
             if (error) {
                 return next(error);
             }
-            var data = JSON.parse(body);
-            if (data.status_code !== 500 && data._embedded.address.length !== 0 ) {
-                var resp = data._embedded.address[0];
-                return helpers.respondSuccessBody(res, JSON.stringify(resp));
+            try {
+                var data = JSON.parse(body);
+                if (data.status_code !== 500 && data._embedded.address.length !== 0 ) {
+                    var resp = data._embedded.address[0];
+                    return helpers.respondSuccessBody(res, JSON.stringify(resp));
+                }
+                return helpers.respondSuccessBody(res, JSON.stringify({"status_code": 500}));
+            } catch (parseError) {
+                console.error('Failed to parse address response:', parseError.message);
+                return helpers.respondSuccessBody(res, JSON.stringify({"status_code": 500}));
             }
-            return helpers.respondSuccessBody(res, JSON.stringify({"status_code": 500}));
         }.bind({
             res: res
         }));
@@ -265,10 +275,15 @@
                         }
                         if (response.statusCode == 200 && body != null && body != "") {
                             console.log(body);
-                            var customerId = JSON.parse(body).user.id;
-                            console.log(customerId);
-                            req.session.customerId = customerId;
-                            callback(null, customerId);
+                            try {
+                                var customerId = JSON.parse(body).user.id;
+                                console.log(customerId);
+                                req.session.customerId = customerId;
+                                callback(null, customerId);
+                            } catch (parseError) {
+                                console.error('Failed to parse login response:', parseError.message);
+                                callback(new Error('Invalid response from login service'));
+                            }
                             return;
                         }
                         console.log(response.statusCode);
