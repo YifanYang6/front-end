@@ -1,9 +1,6 @@
 // Initialize OpenTelemetry first (before any other requires)
 var otel         = require("./otel");
-// Initialize asynchronously - instrumentation will be ready when needed
-// The provider is registered immediately, so requests will still be traced
-// even if resource detection hasn't completed yet
-otel.initializeOtel().catch(err => console.error('Failed to initialize OpenTelemetry:', err));
+otel.initializeOtel();
 
 var request      = require("request")
   , express      = require("express")

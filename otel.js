@@ -6,7 +6,7 @@
   const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
   const { Resource } = require('@opentelemetry/resources');
   const { SEMRESATTRS_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
-  const { BatchSpanProcessor } = require('@opentelemetry/sdk-trace-base');
+  const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
   const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
   const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
@@ -19,7 +19,7 @@
   let isInitialized = false;
   let isShuttingDown = false;
 
-  async function initializeOtel() {
+  function initializeOtel() {
     // Guard against multiple initializations
     if (isInitialized) {
       console.log('OpenTelemetry already initialized, skipping');
@@ -40,30 +40,19 @@
         url: `${otelEndpoint}/v1/traces`,
       });
 
-      // Create base resource with service name
-      const baseResource = new Resource({
-        [SEMRESATTRS_SERVICE_NAME]: serviceName,
-      });
-
-      // Detect additional resource attributes
-      const detectedResource = await Resource.default()
-        .merge(baseResource);
-
-      // Create tracer provider with merged resource
+      // Create tracer provider with resource
       provider = new NodeTracerProvider({
-        resource: detectedResource,
+        resource: new Resource({
+          [SEMRESATTRS_SERVICE_NAME]: serviceName,
+        }),
+        spanProcessors: [new SimpleSpanProcessor(traceExporter)],
       });
 
-      // Add span processor with batch exporter
-      provider.addSpanProcessor(new BatchSpanProcessor(traceExporter));
-
-      // Register the provider to make it available globally
-      provider.register();
-
-      // Register instrumentations with custom configuration
+      // Register instrumentations with tracer provider
       registerInstrumentations({
+        tracerProvider: provider,
         instrumentations: [
-          // HTTP instrumentation with filtering
+          // Express instrumentation expects HTTP layer to be instrumented
           new HttpInstrumentation({
             ignoreIncomingRequestHook: (req) => {
               if (!req.url) {
@@ -74,12 +63,14 @@
               return ignorePaths.some(path => req.url.startsWith(path));
             },
           }),
-          // Express instrumentation with middleware filtering
           new ExpressInstrumentation({
             ignoreLayersType: ['middleware', 'router'],
           }),
         ],
       });
+
+      // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
+      provider.register();
 
       isInitialized = true;
       console.log('OpenTelemetry initialized successfully');
