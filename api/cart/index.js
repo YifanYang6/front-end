@@ -98,8 +98,8 @@
           console.log("POST to carts: " + options.uri + " body: " + JSON.stringify(options.body));
           request(options, function (error, response, body) {
             if (error) {
-              callback(error)
-                return;
+              callback(error);
+              return;
             }
             callback(null, response.statusCode);
           });
@@ -155,8 +155,8 @@
           console.log("PATCH to carts: " + options.uri + " body: " + JSON.stringify(options.body));
           request(options, function (error, response, body) {
             if (error) {
-              callback(error)
-                return;
+              callback(error);
+              return;
             }
             callback(null, response.statusCode);
           });
