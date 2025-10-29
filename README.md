@@ -20,6 +20,10 @@ Front-end application written in [Node.js](https://nodejs.org/en/) that puts tog
   </thead>
   <tbody>
     <tr>
+      <td><a href="https://nodejs.org/">Node.js</a></td>
+      <td>>= 18.0.0</td>
+    </tr>
+    <tr>
       <td><a href="https://docker.com">Docker</a></td>
       <td>>= 1.12</td>
     </tr>
