@@ -10,7 +10,6 @@
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
   const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
   const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
-  const { envDetector, hostDetector, osDetector, processDetector } = require('@opentelemetry/resources');
 
   // Configuration from environment variables
   const otelEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '';
