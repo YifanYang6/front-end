@@ -64,6 +64,9 @@
             '@opentelemetry/instrumentation-net': {
               enabled: false, // Disable net instrumentation
             },
+            '@opentelemetry/instrumentation-http': {
+              enabled: false, // Disable http instrumentation
+            },
           }),
         ],
         logRecordProcessor: new BatchLogRecordProcessor(logExporter),
