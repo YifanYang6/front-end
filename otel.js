@@ -55,6 +55,15 @@
             '@opentelemetry/instrumentation-fs': {
               enabled: false, // Disable filesystem instrumentation to reduce noise
             },
+            '@opentelemetry/instrumentation-express': {
+              ignoreLayersType: ['middleware'], // Ignore middleware layers
+            },
+            '@opentelemetry/instrumentation-dns': {
+              enabled: false, // Disable DNS instrumentation
+            },
+            '@opentelemetry/instrumentation-net': {
+              enabled: false, // Disable net instrumentation
+            },
           }),
         ],
         logRecordProcessor: new BatchLogRecordProcessor(logExporter),
