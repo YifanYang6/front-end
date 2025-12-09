@@ -3,8 +3,8 @@
 
   const { NodeSDK } = require('@opentelemetry/sdk-node');
   const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
-  const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
-  const { OTLPLogExporter } = require('@opentelemetry/exporter-logs-otlp-http');
+  const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
+  const { OTLPLogExporter } = require('@opentelemetry/exporter-logs-otlp-grpc');
   const { Resource } = require('@opentelemetry/resources');
   const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
   const { BatchLogRecordProcessor } = require('@opentelemetry/sdk-logs');
@@ -33,14 +33,14 @@
     console.log(`Initializing OpenTelemetry with endpoint: ${otelEndpoint}`);
 
     try {
-      // Configure trace exporter
+      // Configure trace exporter (gRPC uses the endpoint directly, no path suffix needed)
       const traceExporter = new OTLPTraceExporter({
-        url: `${otelEndpoint}/v1/traces`,
+        url: otelEndpoint,
       });
 
-      // Configure log exporter
+      // Configure log exporter (gRPC uses the endpoint directly, no path suffix needed)
       const logExporter = new OTLPLogExporter({
-        url: `${otelEndpoint}/v1/logs`,
+        url: otelEndpoint,
       });
 
       // Create SDK instance
@@ -63,6 +63,9 @@
             },
             '@opentelemetry/instrumentation-net': {
               enabled: false, // Disable net instrumentation
+            },
+            '@opentelemetry/instrumentation-http': {
+              enabled: true, // Enable http instrumentation for root spans and trace propagation
             },
           }),
         ],
