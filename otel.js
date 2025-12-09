@@ -65,7 +65,7 @@
               enabled: false, // Disable net instrumentation
             },
             '@opentelemetry/instrumentation-http': {
-              enabled: false, // Disable http instrumentation
+              enabled: true, // Enable http instrumentation for root spans and trace propagation
             },
           }),
         ],
