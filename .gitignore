@@ -3,5 +3,6 @@
 
 # Ignore coverage reports
 /coverage
+/.nyc_output
 
 .idea

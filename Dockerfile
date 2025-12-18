@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:22-alpine
 ENV NODE_ENV="production"
 ENV PORT="8079"
 ENV HOME="/tmp"
