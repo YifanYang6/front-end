@@ -92,10 +92,13 @@ The application supports OpenTelemetry for distributed tracing and log export. C
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The OTLP endpoint URL (e.g., `http://localhost:4318`). If not set, OTEL is disabled.
 - `OTEL_SERVICE_NAME`: The service name for telemetry (default: `front-end`)
 
+The frontend is configured to use **W3C TraceContext** and **W3C Baggage** propagators for trace context propagation to backend services. This ensures compatibility with Java backend services using OpenTelemetry.
+
 Example:
 ```bash
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 OTEL_SERVICE_NAME=front-end npm start
 ```
+
 
 # Use
 

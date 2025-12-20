@@ -8,6 +8,7 @@
   const { resourceFromAttributes } = require('@opentelemetry/resources');
   const { ATTR_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
   const { BatchLogRecordProcessor } = require('@opentelemetry/sdk-logs');
+  const { W3CTraceContextPropagator, W3CBaggagePropagator, CompositePropagator } = require('@opentelemetry/core');
 
   // Configuration from environment variables
   const otelEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '';
@@ -43,12 +44,22 @@
         url: otelEndpoint,
       });
 
+      // Configure propagators to ensure trace context propagation to Java backend
+      // Using W3C TraceContext (traceparent) and W3C Baggage for compatibility
+      const propagator = new CompositePropagator({
+        propagators: [
+          new W3CTraceContextPropagator(),
+          new W3CBaggagePropagator(),
+        ],
+      });
+
       // Create SDK instance
       sdk = new NodeSDK({
         resource: resourceFromAttributes({
           [ATTR_SERVICE_NAME]: serviceName,
         }),
         traceExporter: traceExporter,
+        textMapPropagator: propagator,
         instrumentations: [
           getNodeAutoInstrumentations({
             // Configure auto-instrumentations
