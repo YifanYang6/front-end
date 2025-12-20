@@ -68,6 +68,19 @@ describe("otel", function() {
         sdk.shutdown();
       }
     });
+
+    it("should initialize successfully with W3C propagators configured", function() {
+      process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318";
+      otel = require("../otel");
+      var sdk = otel.initializeOtel();
+      // The SDK should initialize without errors when propagators are configured
+      expect(sdk).to.not.be.null;
+      expect(sdk).to.be.an('object');
+      // Cleanup: shutdown the SDK
+      if (sdk) {
+        sdk.shutdown();
+      }
+    });
   });
 
   describe("#sdk", function() {
